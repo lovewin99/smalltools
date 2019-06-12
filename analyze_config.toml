@@ -1,0 +1,13 @@
+log-level = "error"
+log-file = "analyze.log"
+worker-count = 6
+
+table-name = "`tidb_monitor`.`table_month_freq_info`"
+start-day = "2019-06-10"
+period = 15
+
+[db]
+host = "xxx"
+user = "xxx"
+password = "xxx"
+port = 0000
