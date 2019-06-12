@@ -143,7 +143,7 @@ func (j *Job) SaveRes() {
 	log.Info("SaveRes is running")
 	sqlHead := fmt.Sprintf("insert into %v(user, tbls, table_frequency, period, statistical_day,"+
 		"create_time, update_time) values(?,?,?,?,?,?,?)", j.c.TableName)
-	period := 15
+	period := j.c.Period
 	statistical_day := j.c.StartDay
 	create_time := time.Now().Format("2006-01-02 15:04:05")
 	update_time := create_time
