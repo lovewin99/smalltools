@@ -79,15 +79,15 @@ func (j *Job) OpDataPiece() {
 				return
 			}
 			log.Info(sql)
-			db, err := mysql_cli.GetConn(j.c.Dbcfg.User, j.c.Dbcfg.Password, j.c.Dbcfg.Host, string(j.c.Dbcfg.Port))
+			db, err := mysql_cli.GetConn(j.c.Dbcfg.User, j.c.Dbcfg.Password, j.c.Dbcfg.Host, j.c.Dbcfg.Port)
 			if err != nil {
-				log.Info(err)
-				log.Infof("err sql = %v", sql)
+				log.Error(err)
+				log.Errorf("err sql = %v", sql)
 			} else {
 				rows, err := db.Query(sql)
 				if err != nil {
-					log.Info(err)
-					log.Infof("err1 sql = %v", sql)
+					log.Error(err)
+					log.Errorf("err1 sql = %v", sql)
 				}
 				for rows.Next() {
 					var tbl string
@@ -105,7 +105,7 @@ func (j *Job) OpDataPiece() {
 					//可以关闭掉未scan连接一直占用
 					log.Info("row close !!!")
 					if err := rows.Close(); err != nil {
-						log.Info(err)
+						log.Error(err)
 					}
 				}
 			}
@@ -152,9 +152,9 @@ func (j *Job) SaveRes() {
 		return nil
 	}
 
-	db, err := mysql_cli.GetConn(j.c.Dbcfg.User, j.c.Dbcfg.Password, j.c.Dbcfg.Host, string(j.c.Dbcfg.Port))
+	db, err := mysql_cli.GetConn(j.c.Dbcfg.User, j.c.Dbcfg.Password, j.c.Dbcfg.Host, j.c.Dbcfg.Port)
 	if err != nil {
-		log.Info(err)
+		log.Error(err)
 	} else {
 		for k, v := range j.resMap {
 			var schema, table string
@@ -166,7 +166,7 @@ func (j *Job) SaveRes() {
 				schema = ""
 				table = st[0]
 			} else {
-				log.Infof("st error k = %v", st)
+				log.Errorf("st error k = %v", st)
 				continue
 			}
 			var sqlVal []interface{}
@@ -181,16 +181,16 @@ func (j *Job) SaveRes() {
 			if len(sqlVals) > 500 {
 				err := exec(db, sqlHead, &sqlVals)
 				if err != nil {
-					log.Infof("SaveRes execute error !!! \n %v", err)
-					log.Info(sqlVals)
+					log.Errorf("SaveRes execute error !!! \n %v", err)
+					log.Error(sqlVals)
 					continue
 				}
 			}
 		}
 		err := exec(db, sqlHead, &sqlVals)
 		if err != nil {
-			log.Infof("SaveRes execute error !!! \n %v", err)
-			log.Info(sqlVals)
+			log.Errorf("SaveRes execute error !!! \n %v", err)
+			log.Error(sqlVals)
 		}
 	}
 

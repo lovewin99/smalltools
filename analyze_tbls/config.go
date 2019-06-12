@@ -10,7 +10,7 @@ type DbConfig struct {
 	Host     string `toml:"host"`
 	User     string `toml:"user"`
 	Password string `toml:"password"`
-	Port     int64  `toml:"port"`
+	Port     string `toml:"port"`
 }
 
 type Config struct {

@@ -19,7 +19,7 @@ func GetConn(user, pw, host, port string) (*sql.DB, error) {
 	for i := 0; i < retryNum && db == nil; i++ {
 		db, err = sql.Open("mysql", fmt.Sprintf("%v:%v@tcp(%v:%v)/", user, pw, host, port))
 		if err != nil {
-			log.Infof("get conn error : retry times *v \n %v", i, err)
+			log.Warningf("get conn error : retry times *v \n %v", i, err)
 			time.Sleep(3 * time.Second)
 		}
 	}
@@ -36,9 +36,9 @@ func BatchInsert(db *sql.DB, sqlHead string, sqlVals [][]interface{}) error {
 	errFunc := func(i int, err error, sql string, v []interface{}) {
 		if strings.Contains(err.Error(), "connection refused") {
 			time.Sleep(3 * time.Second)
-			log.Infof("connect tidb retry 100 times: %v\n", i+1)
+			log.Warningf("connect tidb retry 100 times: %v\n", i+1)
 		} else {
-			log.Infof("sql exec error sql = %v %v, error info = %v\n", sql, v, err)
+			log.Errorf("sql exec error sql = %v %v, error info = %v\n", sql, v, err)
 		}
 
 	}
