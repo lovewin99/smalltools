@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+type mykey struct {
+	username string
+	tbls     string
+}
+
 type Job struct {
 	c Config
 
@@ -17,8 +22,8 @@ type Job struct {
 	resWg *sync.WaitGroup
 
 	JobCh  chan string
-	resCh  chan string
-	resMap map[string]int
+	resCh  chan mykey
+	resMap map[mykey]int
 }
 
 func NewJob(c Config) (*Job, error) {
@@ -31,8 +36,8 @@ func NewJob(c Config) (*Job, error) {
 	j.resWg = &sync.WaitGroup{}
 
 	j.JobCh = make(chan string, 1000)
-	j.resCh = make(chan string, 1000)
-	j.resMap = make(map[string]int, 12000)
+	j.resCh = make(chan mykey, 1000)
+	j.resMap = make(map[mykey]int, 12000)
 
 	return j, nil
 }
@@ -90,14 +95,17 @@ func (j *Job) OpDataPiece() {
 					log.Errorf("err1 sql = %v", sql)
 				}
 				for rows.Next() {
-					var tbl string
-					err := rows.Scan(&tbl)
+					var tbl, user string
+					err := rows.Scan(&user, &tbl)
 					if err == nil {
-						tbl = strings.Replace(tbl, "`", "", -1)
-						tblArr := strings.Split(tbl, ",")
-						for _, str := range tblArr {
-							j.resCh <- str
+						//tbl = strings.Replace(tbl, "`", "", -1)
+						//tblArr := strings.Split(tbl, ",")
+						if strings.Contains(tbl, "holmes_analysis") {
+							j.resCh <- mykey{user, tbl}
 						}
+						//for _, str := range tblArr {
+						//	j.resCh <- str
+						//}
 					}
 
 				}
@@ -133,10 +141,10 @@ func (j *Job) OpRes() {
 
 func (j *Job) SaveRes() {
 	log.Info("SaveRes is running")
-	sqlHead := fmt.Sprintf("insert into %v(db_name, table_name, table_frequency, period, statistical_day,"+
+	sqlHead := fmt.Sprintf("insert into %v(user, tbls, table_frequency, period, statistical_day,"+
 		"create_time, update_time) values(?,?,?,?,?,?,?)", j.c.TableName)
 	period := 15
-	statistical_day := "2019-06-10"
+	statistical_day := j.c.StartDay
 	create_time := time.Now().Format("2006-01-02 15:04:05")
 	update_time := create_time
 
@@ -157,21 +165,21 @@ func (j *Job) SaveRes() {
 		log.Error(err)
 	} else {
 		for k, v := range j.resMap {
-			var schema, table string
-			st := strings.Split(k, ".")
-			if len(st) == 2 {
-				schema = st[0]
-				table = st[1]
-			} else if len(st) == 1 {
-				schema = ""
-				table = st[0]
-			} else {
-				log.Errorf("st error k = %v", st)
-				continue
-			}
+			//var schema, table string
+			//st := strings.Split(k, ".")
+			//if len(st) == 2 {
+			//	schema = st[0]
+			//	table = st[1]
+			//} else if len(st) == 1 {
+			//	schema = ""
+			//	table = st[0]
+			//} else {
+			//	log.Errorf("st error k = %v", st)
+			//	continue
+			//}
 			var sqlVal []interface{}
-			sqlVal = append(sqlVal, schema)
-			sqlVal = append(sqlVal, table)
+			sqlVal = append(sqlVal, k.username)
+			sqlVal = append(sqlVal, k.tbls)
 			sqlVal = append(sqlVal, v)
 			sqlVal = append(sqlVal, period)
 			sqlVal = append(sqlVal, statistical_day)
