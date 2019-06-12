@@ -53,8 +53,8 @@ func main() {
 
 	for _, day := range days {
 		for _, hour := range hours {
-			sql := fmt.Sprintf("select tbls from tidb_monitor.query_log where user not in ('root', 'monitor', "+
-				"'zhujinlong', 'rongpei', 'sysnc_db', 'sys_syncspark') and start_day='%v' and start_hour='%v';", day, hour)
+			sql := fmt.Sprintf("select user,tbls from tidb_monitor.query_log where user not in ('root', 'monitor', "+
+				"'zhujinlong', 'rongpei', 'sysnc_db', 'sys_syncspark') and start_day='%v' and start_hour='%v' limit 100;", day, hour)
 			job.JobCh <- sql
 			//log.Info(sql)
 		}
